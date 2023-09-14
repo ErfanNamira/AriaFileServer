@@ -1,5 +1,5 @@
 # AriaFileServer 🪄
-🌟 Simple Python+Flask HTTP/HTTPS File Server with Authentication
+🌟 Welcome to AriaFileServer, your versatile Python+Flask HTTP/HTTPS File Server with built-in Authentication!
 
 ## How to run ❓
 🧩 Modify the username and password fields within the users dictionary in AriaFileServerHTTP/S.py.
