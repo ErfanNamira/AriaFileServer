@@ -5,7 +5,7 @@
 
 # sudo apt update
 # sudo apt install certbot python3-pip python3-certbot-nginx
-# pip3 install flask
+# pip3 install flask passlib
 # sudo certbot --nginx -d sub.domain.com
 # sudo ufw allow 443/tcp
 # sudo python3 AriaFileServerHTTPS.py
