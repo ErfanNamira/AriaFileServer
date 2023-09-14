@@ -10,7 +10,7 @@
 # sudo ufw allow 443/tcp
 # sudo python3 AriaFileServerHTTPS.py
 
-from flask import Flask, request, Response
+from flask import Flask, request, Response, send_file
 from functools import wraps
 import os
 
@@ -61,10 +61,9 @@ def serve_file(subpath):
 
     if os.path.exists(requested_path):
         if os.path.isfile(requested_path):
-            # If it's a file, serve it
+            # If it's a file, serve it using send_file
             try:
-                with open(requested_path, 'rb') as f:
-                    return Response(f.read(), mimetype='application/octet-stream')
+                return send_file(requested_path, as_attachment=True)
             except FileNotFoundError:
                 return 'File not found', 404
         elif os.path.isdir(requested_path):
