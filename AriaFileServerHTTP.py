@@ -10,18 +10,21 @@
 from flask import Flask, request, Response, send_file
 from functools import wraps
 import os
+from passlib.hash import sha256_crypt
 
 app = Flask(__name__)
 
-# Define a dictionary to store username-password pairs (You should use a proper database in production)
+# Define a dictionary to store username-password pairs with hashed passwords
 users = {
-    'aria': 'ariapass',
-    'sara': 'sarapass',
+    'aria': '$5$rounds=535000$xMnmt/PCFTYc$9ZM18D6hJ/gY7fE6heDFyTz3LOLMrg.DG94W7Zxtl31',  # Replace with your hashed password
+    'sara': '$5$rounds=535000$Nkz/WH0zFFyN8FZL$Rm4ymd/0kT74q3LlsOfX8aB6tpwPzWdKvD4eS32BqE7',  # Replace with your hashed password
 }
 
-# Function to check if a given username and password are valid
+# Function to verify a given username and password
 def is_valid_user(username, password):
-    return username in users and users[username] == password
+    if username in users:
+        return sha256_crypt.verify(password, users[username])  # Verify the hashed password
+    return False
 
 # Decorator to require authentication for specific routes
 def require_auth(func):
