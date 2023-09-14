@@ -24,6 +24,32 @@ sudo certbot --nginx -d sub.domain.com
 sudo ufw allow 443/tcp
 sudo python3 AriaFileServerHTTPS.py
 ```
+### 👒 Run as a system service on boot
+```
+sudo nano /etc/systemd/system/ariafileserver.service
+```
+```
+[Unit]
+Description=AriaFileServer HTTPS Service
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /path/to/files/AriaFileServerHTTPS.py
+WorkingDirectory=/path/to/files
+Restart=always
+User=your_username
+Environment=PATH=/usr/bin:/usr/local/bin
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
+```
+```
+sudo systemctl daemon-reload
+sudo systemctl start ariafileserver
+sudo systemctl enable ariafileserver
+sudo systemctl status ariafileserver
+```
 ### NGINX conf 🧬
 ```
 sudo nano /etc/nginx/sites-available/default
