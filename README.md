@@ -29,7 +29,7 @@ sudo python3 AriaFileServerHTTPS.py
 sudo nano /etc/nginx/sites-available/default
 sudo systemctl reload nginx
 ```
-Sample NGINX Configuration 🎡
+💠 Sample NGINX Configuration 
 ```
 server {
     listen 80;
