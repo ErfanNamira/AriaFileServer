@@ -43,24 +43,43 @@ def index():
     # Change the welcome message here
     welcome_message = 'Welcome to the Aria File Server!'
     
-    # Get the list of files in the current directory
-    file_list = os.listdir('.')
-    file_list_html = '<ul>'
-    for filename in file_list:
-        file_list_html += f'<li><a href="/files/{filename}">{filename}</a></li>'
-    file_list_html += '</ul>'
-    return f'{welcome_message}<br>List of files in the directory:<br>{file_list_html}'
+    # Get the list of files and directories in the current directory
+    items = os.listdir('.')
+    item_list_html = '<ul>'
+    for item in items:
+        item_path = os.path.join('.', item)
+        item_list_html += f'<li><a href="/files/{item_path}">{item}</a></li>'
+    item_list_html += '</ul>'
+    return f'{welcome_message}<br>List of files and directories in the current directory:<br>{item_list_html}'
 
 # Simple file server route
-@app.route('/files/<path:filename>')
+@app.route('/files/<path:subpath>')
 @require_auth
-def serve_file(filename):
-    try:
-        with open(filename, 'rb') as f:
-            return Response(f.read(), mimetype='application/octet-stream')
-    except FileNotFoundError:
-        return 'File not found', 404
+def serve_file(subpath):
+    # Construct the full path to the requested resource
+    requested_path = os.path.join('.', subpath)
+
+    if os.path.exists(requested_path):
+        if os.path.isfile(requested_path):
+            # If it's a file, serve it
+            try:
+                with open(requested_path, 'rb') as f:
+                    return Response(f.read(), mimetype='application/octet-stream')
+            except FileNotFoundError:
+                return 'File not found', 404
+        elif os.path.isdir(requested_path):
+            # If it's a directory, list its contents
+            items = os.listdir(requested_path)
+            item_list_html = '<ul>'
+            for item in items:
+                item_path = os.path.join(subpath, item)
+                item_list_html += f'<li><a href="/files/{item_path}">{item}</a></li>'
+            item_list_html += '</ul>'
+            return f'Contents of directory {subpath}:<br>{item_list_html}'
+        else:
+            return 'Not a file or directory', 400  # Handle other types of resources
+    else:
+        return 'Resource not found', 404  # Return a 404 if the resource doesn't exist
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=2053, debug=True, ssl_context=('path_to_your_cert.pem', 'path_to_your_privkey.pem'))
-
+    app.run(host='0.0.0.0', port=2083, debug=True, ssl_context=('path_to_your_cert.pem', 'path_to_your_privkey.pem'))
