@@ -4,7 +4,7 @@
 # https://github.com/ErfanNamira/AriaFileServer
 
 # sudo apt install python3-pip
-# pip3 install flask
+# pip3 install flask passlib
 # python3 AriaFileServerHTTP.py
 
 from flask import Flask, request, Response, send_file
