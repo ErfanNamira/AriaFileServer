@@ -22,6 +22,10 @@ users = {
     'aria': '$5$rounds=535000$xMnmt/PCFTYc$9ZM18D6hJ/gY7fE6heDFyTz3LOLMrg.DG94W7Zxtl31',  # Replace with your hashed password
 }
 
+# Set the SSL certificate and private key paths dynamically
+ssl_cert_path = '/etc/letsencrypt/live/your_domain/fullchain.pem'
+ssl_key_path = '/etc/letsencrypt/live/your_domain/privkey.pem'
+
 # Function to verify a given username and password
 def is_valid_user(username, password):
     if username in users:
@@ -83,4 +87,4 @@ def serve_file(subpath):
         return 'Resource not found', 404  # Return a 404 if the resource doesn't exist
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=2083, debug=True, ssl_context=('path_to_your_cert.pem', 'path_to_your_privkey.pem'))
+    app.run(host='0.0.0.0', port=2083, debug=True, ssl_context=(ssl_cert_path, ssl_key_path))
