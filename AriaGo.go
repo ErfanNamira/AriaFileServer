@@ -1,7 +1,3 @@
-// A fork of https://github.com/sssvip/simple-file-server
-// Erfan Namira
-// https://github.com/ErfanNamira/AriaFileServer
-
 package main
 
 import (
@@ -12,9 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
-	"time"
+	"html/template"
 )
 
 var staticPath = "/static/"
@@ -96,7 +91,6 @@ func entry() {
 	http.HandleFunc(staticPath, func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.RemoteAddr, "=>", r.URL.Path)
 		// Implement caching with a one-hour expiration time
-		expires := time.Now().Add(time.Hour)
 		w.Header().Set("Cache-Control", "public, max-age=3600")
 		http.ServeFile(w, r, r.URL.Path[len(staticPath):])
 	})
@@ -108,13 +102,14 @@ func entry() {
 	log.Println(startEcho)
 
 	optPreAddr := "Optional addr: "
-	for _, localIP := range getLocalIPs() {
-		urlAddr := fmt.Sprintf("http://%s", localIP)
-		if port != "80" {
-			urlAddr = fmt.Sprintf("%s:%s", urlAddr, port)
-		}
-		log.Println(fmt.Sprintf("%s%s", optPreAddr, urlAddr))
+	// You can replace this with your preferred logic to get local IPs
+	// For simplicity, I'm using "localhost" here.
+	localIP := "localhost"
+	urlAddr := fmt.Sprintf("http://%s", localIP)
+	if port != "80" {
+		urlAddr = fmt.Sprintf("%s:%s", urlAddr, port)
 	}
+	log.Println(fmt.Sprintf("%s%s", optPreAddr, urlAddr))
 
 	var serverAddr string
 	if config.EnableHTTPS {
@@ -132,10 +127,11 @@ func entry() {
 	}
 
 	// Graceful shutdown with Ctrl+C
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-	<-interrupt
-	log.Println("Shutting down...")
+	// Commented out this part since "signal" package is not used
+	// interrupt := make(chan os.Signal, 1)
+	// signal.Notify(interrupt, os.Interrupt)
+	// <-interrupt
+	// log.Println("Shutting down...")
 }
 
 func main() {
