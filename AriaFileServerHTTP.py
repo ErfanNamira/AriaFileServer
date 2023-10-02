@@ -1,5 +1,4 @@
 # Aria File Server HTTP Version
-# v. 1.1
 # HTTP File Server with Authentication
 # ErfanNamira
 # https://github.com/ErfanNamira/AriaFileServer
@@ -11,24 +10,19 @@
 from flask import Flask, request, Response, send_file
 from functools import wraps
 import os
-import mimetypes
-from passlib.hash import bcrypt
-from werkzeug.exceptions import NotFound
-from werkzeug.utils import secure_filename
-from flask_caching import Cache
+from passlib.hash import sha256_crypt
 
 app = Flask(__name__)
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})  # Simple in-memory caching, you can choose other caching methods as needed
 
 # Define a dictionary to store username-password pairs with hashed passwords
 users = {
-    'aria': bcrypt.using(rounds=13).hash('your_password'),  # Replace 'your_password' with the actual password
+    'aria': '$5$rounds=535000$xMnmt/PCFTYc$9ZM18D6hJ/gY7fE6heDFyTz3LOLMrg.DG94W7Zxtl31',  # Replace with your hashed password
 }
 
 # Function to verify a given username and password
 def is_valid_user(username, password):
     if username in users:
-        return bcrypt.verify(password, users[username])  # Verify the hashed password
+        return sha256_crypt.verify(password, users[username])  # Verify the hashed password
     return False
 
 # Decorator to require authentication for specific routes
@@ -40,13 +34,6 @@ def require_auth(func):
             return Response('Authentication failed', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
         return func(*args, **kwargs)
     return auth_wrapper
-
-# Set CORS headers for all routes
-@app.after_request
-def add_cors_headers(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'  # Allow requests from any origin
-    response.headers['Access-Control-Allow-Methods'] = 'GET'
-    return response
 
 # Route for the root URL ("/") - asks for authentication
 @app.route('/')
@@ -67,22 +54,30 @@ def index():
 # Simple file server route
 @app.route('/files/<path:subpath>')
 @require_auth
-@cache.cached(timeout=300)  # Cache the file response for 5 minutes (adjust timeout as needed)
 def serve_file(subpath):
+    # Construct the full path to the requested resource
     requested_path = os.path.join('.', subpath)
-    
+
     if os.path.exists(requested_path):
-        try:
-            mime_type, _ = mimetypes.guess_type(requested_path)
-            if mime_type:
-                return send_file(requested_path, as_attachment=True, mimetype=mime_type, conditional=True)
-            else:
-                return send_file(requested_path, as_attachment=True, conditional=True)
-        except Exception as e:
-            app.logger.error(f"Error serving file '{subpath}': {e}")
-            return 'Error serving the file', 500
+        if os.path.isfile(requested_path):
+            # If it's a file, serve it using send_file
+            try:
+                return send_file(requested_path, as_attachment=True)
+            except FileNotFoundError:
+                return 'File not found', 404
+        elif os.path.isdir(requested_path):
+            # If it's a directory, list its contents
+            items = os.listdir(requested_path)
+            item_list_html = '<ul>'
+            for item in items:
+                item_path = os.path.join(subpath, item)
+                item_list_html += f'<li><a href="/files/{item_path}">{item}</a></li>'
+            item_list_html += '</ul>'
+            return f'Contents of directory {subpath}:<br>{item_list_html}'
+        else:
+            return 'Not a file or directory', 400  # Handle other types of resources
     else:
-        raise NotFound(description=f"The requested resource '{subpath}' was not found on this server.")
+        return 'Resource not found', 404  # Return a 404 if the resource doesn't exist
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=2083, debug=True)
+    app.run(host='0.0.0.0', port=2082, debug=True)
